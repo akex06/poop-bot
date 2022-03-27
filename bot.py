@@ -181,4 +181,4 @@ async def addPoop(member, toilet):
 
     return val
 
-client.run("OTU3NjIzOTc5MTczMTE3OTgz.YkBe1A.FRvgun74_CoZD12i6k8UEO9UYcQ")
+client.run("TOKEN")
