@@ -19,7 +19,7 @@ def get_prefix(client, message):
         return "p!"
     return result[0]
 
-client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
+client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all()help_command=None)
 
 @client.event
 async def on_ready():
@@ -180,5 +180,12 @@ async def addPoop(member, toilet):
     conn.commit()
 
     return val
-
+@client.command()
+async def help(ctx):
+    help = discord.Embed(title="Poop Bot Help!")
+    help.add_field(name="p!poop", value="Gain some poops!", inline=False)
+    help.add_field(name="p!levelup", value="Level up your toilet!", inline=False)
+    help.add_field(name="p!poopbal", value="Show how many poops you have!", inline=False)
+    help.add_field(name="p!help", value="Shows this message!", inline=False)
+    await ctx.send(embed=help)
 client.run("TOKEN")
