@@ -183,9 +183,9 @@ async def addPoop(member, toilet):
 @client.command()
 async def help(ctx):
     help = discord.Embed(title="Poop Bot Help!")
-    help.add_field(name="p!poop", value="Gain some poops!")
-    help.add_field(name="p!levelup", value="Level up your toilet!")
-    help.add_field(name="p!poopbal", value="Show how many poops you have!")
-    help.add_field(name="p!help", value="Shows this message!")
+    help.add_field(name="p!poop", value="Gain some poops!", inline=False)
+    help.add_field(name="p!levelup", value="Level up your toilet!", inline=False)
+    help.add_field(name="p!poopbal", value="Show how many poops you have!", inline=False)
+    help.add_field(name="p!help", value="Shows this message!", inline=False)
     await ctx.send(embed=help)
 client.run("TOKEN")
