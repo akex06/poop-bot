@@ -14,11 +14,11 @@
         "toilet5": "Platinum Toilet"
     },
     "cooldowns": {
-        "toilet1": 12,
-        "toilet2": 9,
-        "toilet3": 6,
-        "toilet4": 4,
-        "toilet5": 3
+        "toilet1": 8,
+        "toilet2": 6,
+        "toilet3": 4,
+        "toilet4": 2,
+        "toilet5": 1
     },
     "winnings": {
         "1": {
