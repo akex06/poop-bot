@@ -14,7 +14,7 @@ class General(commands.Cog):
     async def poopbal(self, ctx: commands.Context, member: discord.Member = None):
         member = member or ctx.author
 
-        poops = pooputils.get_poops(member)
+        poops = list(pooputils.get_poops(member).values())
         toilet_level = pooputils.get_toilet(member)
 
         background: Image = Image.open("./files/images/background.png")
@@ -57,42 +57,58 @@ class General(commands.Cog):
 
     @commands.command(aliases = ["rankup"], description = "Level up your toilet!")
     async def levelup(self, ctx: commands.Context):
-        with open("./files/poop.json", "r") as f:
-            data = json.load(f)
-
-        poops = pooputils.get_poops(ctx.author)
-        toilet = pooputils.get_toilet(ctx.author)
-
         embed = discord.Embed(title = "Level Up", description = f"Use p!help for a list of all the commands",
                               color = discord.Colour.green())
+
+        toilet = pooputils.get_toilet(ctx.author)
         if toilet == 5:
             embed.add_field(name = "Level up :white_check_mark:",
                             value = "You already have the max toilet level <:toilet5:957708789442830397>")
             await ctx.send(embed = embed)
             return
 
-        poop_info: str = ""
-        l: list = []
+        poops: dict = pooputils.get_poops(ctx.author)
+        needed_poops: dict = pooputils.get_levelup()[str(toilet)]
+        missing_poops: dict = {
+            poop: max(amount - poops[poop], 0)
+            for poop, amount in needed_poops.items()
+        }
+        emojis: dict = pooputils.get_emojis()
 
-        for i, amount in enumerate(data["levelup"][str(toilet)].values()):
-            poop_info += f"{data['poops'][f'poop{i + 1}']['name']} <:{data['emoji'][f'poop{i + 1}']}:{data['emoji'][f'poop{i + 1}']}> **{poops[i]}**/**{amount}**\n"
-            l.append(poops[i] >= amount)
-
-        if all(l):
+        if all(missing_poops.values()):
             embed.add_field(
-                name = "Level Up :white_check_mark:",
-                value = f"You have a level {toilet + 1} toilet <:toilet{toilet + 1}:{data['emoji'][f'toilet{toilet + 1}']}>"
+                name = "**Missing poops**",
+                value = "\n".join([
+                    f"<:{poop}:{emojis[poop]}> **{poops[poop]}/{amount}**"
+                    for poop, amount in needed_poops.items()
+                ])
             )
 
-            sql = f"UPDATE poop SET toilet = toilet + 1, {', '.join([f'{x} = {x} - ?' for x in data['levelup'][str(toilet)]])}"
-            val = tuple([x for x in data["levelup"][str(toilet)].values()])
+            await ctx.send(embed = embed)
+            return
 
-            pooputils.c.execute(sql, val)
-            pooputils.conn.commit()
-        else:
-            embed.add_field(name = "Poops Needed", value = poop_info)
+        pooputils.c.execute(
+            "UPDATE poop "
+            "SET poop1 = poop1 - ?, "
+            "poop2 = poop2 - ?, "
+            "poop3 = poop3 - ?, "
+            "poop4 = poop4 - ?, "
+            "poop5 = poop5 - ?, "
+            "toilet = toilet + 1 "
+            "WHERE member = ? AND guild = ?",
+            (
+                needed_poops.get("poop1", 0),
+                needed_poops.get("poop2", 0),
+                needed_poops.get("poop3", 0),
+                needed_poops.get("poop4", 0),
+                needed_poops.get("poop5", 0),
+                ctx.author.id,
+                ctx.guild.id
+            )
+        )
+        pooputils.conn.commit()
 
-        await ctx.send(embed = embed)
+        await ctx.send("leveled up")
 
     @commands.command(aliases = ["leaderboard", "top"], description = "Shows a leaderboard with the most poops")
     async def lb(self, ctx: commands.Context):
@@ -108,7 +124,7 @@ class General(commands.Cog):
         for poop in poops:
             user: discord.User = await self.bot.fetch_user(poop[1])
             player_poops: str = "\n".join(
-                [f"<:poop{i+1}:{emojis[f'poop{i+1}']}> `{amount}`" for i, amount in enumerate(poop[2]) if amount]
+                [f"<:poop{i + 1}:{emojis[f'poop{i + 1}']}> `{amount}`" for i, amount in enumerate(poop[2]) if amount]
             )
 
             embed.add_field(

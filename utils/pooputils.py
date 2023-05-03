@@ -65,7 +65,11 @@ def get_poops(member):
 
     result = c.execute("SELECT poop1, poop2, poop3, poop4, poop5 FROM poop WHERE member = ? AND guild = ?",
                        (member.id, member.guild.id)).fetchone()
-    return result
+
+    return {
+        f"poop{i + 1}": amount
+        for i, amount in enumerate(result)
+    }
 
 
 def get_toilet(member):
@@ -99,6 +103,9 @@ def get_poop_values() -> dict:
 def get_emojis() -> dict:
     return get_config()["emoji"]
 
+def get_levelup() -> dict:
+    return get_config()["levelup"]
+
 
 def get_all_poops(guild: discord.Guild):
     result = c.execute(
@@ -116,6 +123,5 @@ def get_all_poops(guild: discord.Guild):
 
         formatted_poops.append((wealth, member[0], member[2:]))
 
-    formatted_poops.sort()
-    print(formatted_poops)
+    formatted_poops.sort(reverse = True)
     return formatted_poops[:25]
