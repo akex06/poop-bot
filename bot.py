@@ -50,4 +50,4 @@ class Bot(commands.Bot):
 
 
 bot = Bot()
-bot.run("lmao I am not leaking the token again")
+bot.run("a")

@@ -78,17 +78,36 @@ def get_toilet(member):
     return result[0]
 
 
-def add_poops(member, toilet):
-    with open("./files/poop.json", "r") as f:
-        data = json.load(f)
+def get_winnings(toilet: int) -> dict:
+    return {
+        poop: random.randint(*_range) for poop, _range in get_config()["winnings"][str(toilet)].items()
+    }
 
-    string = "UPDATE poop SET " + ", ".join([f"{x} = {x} + ?" for x in data["winnings"][str(toilet)]])
-    val = tuple([random.randint(x[0], x[1]) for x in data["winnings"][str(toilet)].values()], )
 
-    c.execute(string, val)
+def add_poops(member: discord.Member) -> dict:
+    winnings: dict = get_winnings(get_toilet(member))
+    print(winnings)
+    c.execute(
+        "UPDATE poop "
+        "SET poop1 = poop1 + ?, "
+        "poop2 = poop2 + ?, "
+        "poop3 = poop3 + ?, "
+        "poop4 = poop4 + ?, "
+        "poop5 = poop5 + ? "
+        "WHERE member = ? AND guild = ?",
+        (
+            winnings.get("poop1", 0),
+            winnings.get("poop2", 0),
+            winnings.get("poop3", 0),
+            winnings.get("poop4", 0),
+            winnings.get("poop5", 0),
+            member.id,
+            member.guild.id
+        )
+    )
     conn.commit()
 
-    return val
+    return winnings
 
 
 def get_config() -> dict:
@@ -103,8 +122,13 @@ def get_poop_values() -> dict:
 def get_emojis() -> dict:
     return get_config()["emoji"]
 
+
 def get_levelup() -> dict:
     return get_config()["levelup"]
+
+
+def get_poop_names() -> dict:
+    return get_config()["poops"]
 
 
 def get_all_poops(guild: discord.Guild):
@@ -125,3 +149,8 @@ def get_all_poops(guild: discord.Guild):
 
     formatted_poops.sort(reverse = True)
     return formatted_poops[:25]
+
+
+def set_prefix(guild: discord.Guild, prefix: str):
+    c.execute("UPDATE prefixes SET prefix = ? WHERE guild = ?", (prefix, guild.id))
+    conn.commit()

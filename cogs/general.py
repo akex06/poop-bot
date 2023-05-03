@@ -24,11 +24,13 @@ class General(commands.Cog):
         font = ImageFont.truetype("./files/font.otf", size = 50)
         draw = ImageDraw.Draw(background)
 
+        print(poops)
+
         draw.text((150, 124), str(poops[0]), font = font, fill = (255, 255, 255))
         draw.text((150, 250), str(poops[1]), font = font, fill = (255, 255, 255))
-        draw.text((590, 250), str(poops[3]), font = font, fill = (255, 255, 255))
         draw.text((150, 376), str(poops[2]), font = font, fill = (255, 255, 255))
-        draw.text((590, 124), str(poops[4]), font = font, fill = (255, 255, 255))
+        draw.text((590, 124), str(poops[3]), font = font, fill = (255, 255, 255))
+        draw.text((590, 250), str(poops[4]), font = font, fill = (255, 255, 255))
         draw.text((590, 376), f"Level {toilet_level}", font = font, fill = (255, 255, 255))
 
         background.save("./files/images/temporary.png")
@@ -39,18 +41,13 @@ class General(commands.Cog):
     @commands.dynamic_cooldown(pooputils.get_cooldown, commands.BucketType.user)
     async def poop(self, ctx: commands.Context):
         pooputils.check_poops(ctx.author)
-
-        toilet = pooputils.get_toilet(ctx.author)
-        obtained_poops = pooputils.add_poops(ctx.author, toilet)
-
-        with open("./files/poop.json", "r") as f:
-            data = json.load(f)
-
-        poop_info: str = ""
-        for i, amount in enumerate(obtained_poops):
-            poop_info += f"{data['poops'][f'poop{i + 1}']['name']}: +{amount} <:poop{i + 1}:{data['emoji'][f'poop{i + 1}']}>\n"
-
-        embed = discord.Embed(description = f"Poops Obtained: {poop_info}", color = discord.Color.green())
+        emojis: dict = pooputils.get_emojis()
+        poop_names: dict = pooputils.get_poop_names()
+        obtained_poops = pooputils.add_poops(ctx.author)
+        poops: str = "\n".join([
+            f"<:{poop}:{emojis[poop]}> {poop_names[poop]['name']}: {amount}" for poop, amount in obtained_poops.items()
+        ])
+        embed = discord.Embed(description = f"Poops Obtained:\n{poops}", color = discord.Color.green())
         embed.set_author(icon_url = self.bot.user.avatar.url, name = "Satisfying Poop")
 
         await ctx.send(embed = embed)
