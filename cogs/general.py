@@ -45,7 +45,7 @@ class General(commands.Cog):
         poop_names: dict = pooputils.get_poop_names()
         obtained_poops = pooputils.add_poops(ctx.author)
         poops: str = "\n".join([
-            f"<:{poop}:{emojis[poop]}> {poop_names[poop]['name']}: {amount}" for poop, amount in obtained_poops.items()
+            f"{emojis[poop]} {poop_names[poop]['name']}: {amount}" for poop, amount in obtained_poops.items()
         ])
         embed = discord.Embed(description = f"Poops Obtained:\n{poops}", color = discord.Color.green())
         embed.set_author(icon_url = self.bot.user.avatar.url, name = "Satisfying Poop")
@@ -76,7 +76,7 @@ class General(commands.Cog):
             embed.add_field(
                 name = "**Missing poops**",
                 value = "\n".join([
-                    f"<:{poop}:{emojis[poop]}> **{poops[poop]}/{amount}**"
+                    f"{emojis[poop]} **{poops[poop]}/{amount}**"
                     for poop, amount in needed_poops.items()
                 ])
             )
@@ -109,19 +109,23 @@ class General(commands.Cog):
 
     @commands.command(aliases = ["leaderboard", "top"], description = "Shows a leaderboard with the most poops")
     async def lb(self, ctx: commands.Context):
-        poops: list = pooputils.get_all_poops(ctx.guild)
-        emojis: dict = pooputils.get_emojis()
-
         embed = discord.Embed(
             description = "Top 25 users with the most poop value",
             color = 0xed9b1f
         )
+        embed.add_field(name = f"{pooputils.get_emoji('loading')} Loading data...",
+                        value = "Please wait, this could take a couple of seconds")
         embed.set_author(icon_url = self.bot.user.avatar.url, name = "PoopBot Leaderboard")
+        msg: discord.Message = await ctx.send(embed = embed)
+        embed.clear_fields()
+
+        poops: list = pooputils.get_all_poops(ctx.guild)
+        emojis: dict = pooputils.get_emojis()
 
         for poop in poops:
             user: discord.User = await self.bot.fetch_user(poop[1])
             player_poops: str = "\n".join(
-                [f"<:poop{i + 1}:{emojis[f'poop{i + 1}']}> `{amount}`" for i, amount in enumerate(poop[2]) if amount]
+                [f"{emojis[f'poop{i + 1}']} `{amount}`" for i, amount in enumerate(poop[2]) if amount]
             )
 
             embed.add_field(
@@ -129,7 +133,7 @@ class General(commands.Cog):
                 value = f"Poop value: `{poop[0]}`\n{player_poops}"
             )
 
-        await ctx.send(embed = embed)
+        await msg.edit(embed = embed)
 
     @commands.command(description = "Shows this message")
     async def help(self, ctx: commands.Context):

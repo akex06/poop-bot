@@ -123,6 +123,10 @@ def get_emojis() -> dict:
     return get_config()["emoji"]
 
 
+def get_emoji(name: str) -> str:
+    return get_emojis()[name]
+
+
 def get_levelup() -> dict:
     return get_config()["levelup"]
 

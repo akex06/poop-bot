@@ -50,4 +50,4 @@ class Bot(commands.Bot):
 
 
 bot = Bot()
-bot.run("a")
+bot.run("")
