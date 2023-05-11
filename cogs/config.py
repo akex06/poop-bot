@@ -1,7 +1,7 @@
 import discord
 
 from discord.ext import commands
-from utils import pooputils
+from utils import config
 
 
 class Config(commands.Cog):
