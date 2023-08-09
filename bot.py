@@ -12,7 +12,7 @@ class Bot(commands.Bot):
             intents = discord.Intents.all(),
             help_command = None
         )
-        self.config: Config = Config()
+        self.config: Config = Config(self)
         self.db: DB = DB(self)
 
     async def setup_hook(self) -> None:
@@ -23,18 +23,9 @@ class Bot(commands.Bot):
     async def on_ready(self):
         print(f"[   READY   ]: {self.user}")
 
-    async def on_guild_join(self, guild: discord.Guild):
-        print(f"[   GUILD+   ]: {guild.name}")
-
-        self.db.get_prefix(guild)
-
-    async def on_guild_leave(self, guild: discord.Guild):
-        print(f"[   GUILD-   ]: {guild.name}")
-
     async def on_message(self, message: discord.Message):
         if f"<@{self.user.id}>" in message.content:
-            prefix = self.db.get_prefix(message.guild)
-            await message.reply(f"My prefix: `{prefix}`")
+            await message.reply(f"My prefix: `p!`")
 
         await self.process_commands(message)
 
@@ -53,4 +44,4 @@ class Bot(commands.Bot):
 
 
 bot = Bot()
-bot.run("")
+bot.run("TOKEN")

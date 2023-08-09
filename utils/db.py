@@ -6,18 +6,20 @@ from utils.config import Config
 
 
 class DB:
-    def __init__(self, bot: commands.Bot) -> None:
-        self.conn = mysql.connector.connect(
-            host = "host",
-            port = 3306,
-            user = "user",
-            password = "password",
-            database = "database"
-        )
-        self.c = self.conn.cursor()
+    conn = mysql.connector.connect(
+        host = "panel.akex.dev",
+        port = 3306,
+        user = "u5_UmTE7AmulY",
+        password = "rEf8@O0J=IxOADyxdJl09^@v",
+        database = "s5_PoopBot"
+    )
+    c = conn.cursor()
+    config: Config
 
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot: commands.Bot = bot
-        self.config: Config = self.bot.config
+        DB.config = bot.config
+
 
     def create_tables(self):
         self.c.execute("CREATE TABLE IF NOT EXISTS prefixes (guild VARCHAR(20) PRIMARY KEY, prefix VARCHAR(10))")

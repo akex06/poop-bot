@@ -1,9 +1,15 @@
+import datetime
+
 import discord
 from PIL import Image, ImageFont, ImageDraw
 from discord.ext import commands
 
 from utils.config import Config
 from utils.db import DB
+
+
+def get_cooldown(ctx: commands.Context):
+    return ctx.bot.config.get_cooldown(ctx.author)
 
 
 class General(commands.Cog):
@@ -38,8 +44,9 @@ class General(commands.Cog):
         await ctx.send(file = discord.File("./files/images/temporary.png"))
 
     @commands.command(description = "Gain some poops!")
+    @commands.dynamic_cooldown(get_cooldown, commands.BucketType.member)
     async def poop(self, ctx: commands.Context):
-        self.bot.db.check_poops(ctx.author)
+
         obtained_poops: dict = self.bot.db.add_poops(ctx.author)
         poops: str = "\n".join([
             f"{self.config.get_emoji(poop)} {self.config.get_poop_info(poop)['name']}: {amount}"
