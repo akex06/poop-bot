@@ -7,11 +7,11 @@ from utils.config import Config
 
 class DB:
     conn = mysql.connector.connect(
-        host = "panel.akex.dev",
+        host = "host",
         port = 3306,
-        user = "u5_UmTE7AmulY",
-        password = "rEf8@O0J=IxOADyxdJl09^@v",
-        database = "s5_PoopBot"
+        user = "user",
+        password = "password",
+        database = "database"
     )
     c = conn.cursor()
     config: Config
