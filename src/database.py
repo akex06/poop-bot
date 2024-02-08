@@ -4,6 +4,9 @@ import discord
 import mysql.connector
 from discord.ext import commands
 
+from collections import namedtuple
+
+LeaderboardEntry = namedtuple("LeaderboardEntry", "member_id balance toilet poops")
 
 class Database:
     def __init__(
@@ -150,3 +153,28 @@ class Database:
         )
         self.conn.commit()
 
+    def get_leaderboard(self, guild: discord.Guild, amount: int) -> list[LeaderboardEntry]:
+        self.c.execute(
+            """
+                SELECT
+                    member,
+                    balance,
+                    toilet,
+                    poop1,
+                    poop2,
+                    poop3,
+                    poop4,
+                    poop5
+                FROM poops
+                WHERE guild = %s
+                ORDER BY balance DESC
+                LIMIT %s
+            """,
+            (guild.id, amount)
+        )
+        leaderboard = list()
+        leaderboard_entries = self.c.fetchall()
+        for entry in leaderboard_entries:
+            leaderboard.append(LeaderboardEntry(*entry[:3], entry[3:]))
+
+        return leaderboard

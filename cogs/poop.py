@@ -91,7 +91,25 @@ class Poop(commands.Cog):
         with_app_command=True
     )
     async def leaderboard(self, ctx: commands.Context) -> None:
-        pass
+        embed = discord.Embed(description="Top 10 users with more poop value", color=EMBED_COLOR)
+        leaderboard_entries = self.bot.db.get_leaderboard(ctx.guild, 10)
+
+        for entry in leaderboard_entries:
+            member = ctx.guild.get_member(entry.member_id)
+            description = [f"Poop value `{entry.balance}`"]
+
+            for poop, amount in enumerate(entry.poops, start=1):
+                emoji = self.bot.config.get_emoji(f"poop{poop}")
+                description.append(f"{emoji} `{amount}`")
+
+            embed.add_field(
+                name=f"{member}",
+                value="\n".join(description)
+            )
+
+        self.set_embed_footer(embed)
+
+        await ctx.send(embed=embed)
 
     def get_poop_description(self, poops: list[int]) -> list:
         description = list()

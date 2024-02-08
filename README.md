@@ -7,4 +7,4 @@ A useless bot for Discord
 ## Pooping
 ![img.png](images/balance.png)
 ## More pooping
-![img.png](images/inprogress.png)
+![img.png](images/leaderboard.png)
