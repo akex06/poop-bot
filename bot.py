@@ -1,47 +1,56 @@
+import os
+
 import discord
-
 from discord.ext import commands
-from utils.db import DB
-from utils.config import Config
+from discord.ext.commands import errors
+
+from src.database import Database
+from src.env import (
+    DB_HOST,
+    DB_PORT,
+    DB_USER,
+    DB_PASSWORD,
+    DB_DATABASE,
+    TOKEN
+)
+from src.poop_config import PoopConfig
 
 
-class Bot(commands.Bot):
-    def __init__(self) -> None:
-        super().__init__(
-            command_prefix = "p!",
-            intents = discord.Intents.all(),
-            help_command = None
+class PoopBot(commands.Bot):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.db = Database(
+            self,
+            DB_HOST,
+            DB_PORT,
+            DB_USER,
+            DB_PASSWORD,
+            DB_DATABASE
         )
-        self.config: Config = Config(self)
-        self.db: DB = DB(self)
+        self.config = PoopConfig(self, "config.json")
+
+    async def on_ready(self) -> None:
+        print(f"Bot ready: {self.user}")
 
     async def setup_hook(self) -> None:
-        self.db.create_tables()
+        for cog in os.listdir("cogs"):
+            if not cog.endswith(".py"):
+                continue
 
-        await self.load_extension("cogs.general")
+            await self.load_extension(f"cogs.{cog[:-3]}")
 
-    async def on_ready(self):
-        print(f"[   READY   ]: {self.user}")
-
-    async def on_message(self, message: discord.Message):
-        if f"<@{self.user.id}>" in message.content:
-            await message.reply(f"My prefix: `p!`")
-
-        await self.process_commands(message)
-
-    async def on_command_error(self, ctx: commands.Context, error: Exception):
-        if isinstance(error, commands.CommandNotFound):
-            await ctx.send("Use p!help for a list of all commands")
-
-        if isinstance(error, commands.CommandOnCooldown):
-            embed = discord.Embed(
-                description = f"Wait {round(error.retry_after)} seconds before using this command",
-                color = discord.Color.red()
-            )
-            embed.set_author(icon_url = self.user.avatar.url, name = "Satisfying Poop")
-
-            await ctx.send(embed = embed)
+    async def on_command_error(self, ctx: commands.Context, exception: errors.CommandError, /) -> None:
+        if isinstance(exception, errors.CommandOnCooldown):
+            await ctx.send(f"Please wait `{exception.retry_after:.2f}` seconds before pooping again")
+        else:
+            raise exception
 
 
-bot = Bot()
-bot.run("TOKEN")
+def get_prefix(bot: PoopBot, message: discord.Message) -> str:
+    return bot.db.get_prefix(message.guild)
+
+
+if __name__ == "__main__":
+    poop_bot = PoopBot(command_prefix=get_prefix, intents=discord.Intents.all())
+    poop_bot.run(TOKEN)
