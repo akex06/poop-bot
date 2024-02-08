@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.ext.commands import errors
 
 from src.database import Database
-from src.env import (
+from env import (
     DB_HOST,
     DB_PORT,
     DB_USER,
