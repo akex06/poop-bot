@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
-from bot import PoopBot
 
+from bot import PoopBot
 from src.constants import (
     DEFAULT_GUILD_ICON,
-    DEFAULT_BOT_ICON,
     EMBED_COLOR
 )
 
@@ -21,6 +20,7 @@ class Poop(commands.Cog):
     @commands.dynamic_cooldown(get_cooldown, commands.BucketType.member)
     @commands.hybrid_command(
         "poop",
+        description="You poop, what description did you expect",
         with_app_command=True
     )
     async def poop(self, ctx: commands.Context) -> None:
@@ -31,12 +31,12 @@ class Poop(commands.Cog):
 
         embed = discord.Embed(description="\n".join(description), color=EMBED_COLOR)
         embed.set_author(name="You pooped")
-        self.set_embed_footer(embed)
 
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
         "balance",
+        description="Checks yours or others poop balance",
         aliases=["bal", "poops"],
         with_app_command=True
     )
@@ -58,12 +58,11 @@ class Poop(commands.Cog):
         member_icon = DEFAULT_GUILD_ICON if member.avatar is None else member.avatar.url
         embed.set_author(name=f"{member.name}'s balance", icon_url=member_icon)
 
-        self.set_embed_footer(embed)
-
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
         name="upgrade",
+        description="Upgrade your toilet to poop faster",
         aliases=["rankup"],
         with_app_command=True
     )
@@ -79,7 +78,7 @@ class Poop(commands.Cog):
                 break
 
         if not can_rankup:
-            await ctx.send(f"You can't rankup, needed poops: {required_poops}")
+            await ctx.send(f"You can't upgrade, needed poops: {required_poops}")
             return
 
         self.bot.db.rankup(ctx.author)
@@ -88,6 +87,7 @@ class Poop(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.hybrid_command(
         name="leaderboard",
+        description="Checks the top 10 players of the server",
         aliases=["lb", "top"],
         with_app_command=True
     )
@@ -108,8 +108,6 @@ class Poop(commands.Cog):
                 value="\n".join(description)
             )
 
-        self.set_embed_footer(embed)
-
         await ctx.send(embed=embed)
 
     def get_poop_description(self, poops: list[int]) -> list:
@@ -119,10 +117,6 @@ class Poop(commands.Cog):
             description.append(f"{emoji}: `{amount}`")
 
         return description
-
-    def set_embed_footer(self, embed: discord.Embed) -> None:
-        bot_icon = DEFAULT_BOT_ICON if self.bot.user.avatar is None else self.bot.user.avatar.url
-        embed.set_footer(text="Consider supporting the bot <3, anything helps", icon_url=bot_icon)
 
 
 async def setup(bot: PoopBot) -> None:

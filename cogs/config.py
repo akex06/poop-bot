@@ -9,6 +9,7 @@ class Config(commands.Cog):
 
     @commands.hybrid_command(
         name="setprefix",
+        description="Sets the prefix of the server, if no arguments passed the current prefix is shown",
         aliases=["set_prefix", "prefix"],
         with_app_command=True
     )

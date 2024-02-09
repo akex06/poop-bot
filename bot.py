@@ -13,6 +13,7 @@ from env import (
     DB_DATABASE,
     TOKEN
 )
+from src.help import HelpCommand
 from src.poop_config import PoopConfig
 
 
@@ -33,7 +34,6 @@ class PoopBot(commands.Bot):
     async def on_ready(self) -> None:
         print(f"Bot ready: {self.user}")
 
-
     async def setup_hook(self) -> None:
         for cog in os.listdir("cogs"):
             if not cog.endswith(".py"):
@@ -49,9 +49,10 @@ class PoopBot(commands.Bot):
 
 
 def get_prefix(bot: PoopBot, message: discord.Message) -> str:
-    return bot.db.get_prefix(message.guild)
+    # noinspection PyTypeChecker
+    return commands.when_mentioned_or(bot.db.get_prefix(message.guild))(bot, message)
 
 
 if __name__ == "__main__":
-    poop_bot = PoopBot(command_prefix=get_prefix, intents=discord.Intents.all())
+    poop_bot = PoopBot(command_prefix=get_prefix, intents=discord.Intents.all(), help_command=HelpCommand())
     poop_bot.run(TOKEN)

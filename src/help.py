@@ -1,59 +1,62 @@
-from typing import Mapping, Optional, List, Any
+from typing import Any, Mapping, Optional, List
 
 import discord
 from discord.ext import commands
-from discord import ui
-from src.constants import (
-    EMBED_COLOR
-)
+from discord.ext.commands import Cog, Command
+
+from src.constants import EMBED_COLOR
 
 
-class CogSelector(ui.Select):
+def get_cog_help_embed(cog: commands.Cog, prefix: str):
+    description = list()
+    for command in cog.get_commands():
+        parameters = " ".join(
+            f"<{name}>" if parameter.required else f"[{name}]"
+            for name, parameter in command.params.items()
+        )
+        description.append(
+            f"`{prefix}{command.name} {parameters}` - {command.description}"
+        )
+
+    embed = discord.Embed(description="\n".join(description), color=EMBED_COLOR)
+    embed.set_author(name=f"{cog.qualified_name} cog")
+
+    return embed
+
+
+class HelpSelector(discord.ui.Select):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
         options = [
-            discord.SelectOption(
-                label=name,
-                emoji=cog.emoji
-            ) for name, cog
-            in self.bot.cogs.items()
+            discord.SelectOption(label=name, description=cog.description, emoji=cog.emoji)
+            for name, cog in bot.cogs.items()
         ]
 
-        super().__init__(placeholder="Select a cog", min_values=1, max_values=1, options=options)
+        super().__init__(placeholder="Select a cog to get help", min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
-        cog = self.bot.get_cog(self.values[0])
-        prefix = self.bot.db.get_prefix(interaction.user)
+        cog_name = self.values[0]
+        cog = self.bot.get_cog(cog_name)
 
         for option in self.options:
-            if option.value == self.values[0]:
+            if option.value == cog_name:
                 option.default = True
             else:
                 option.default = False
 
-        description = list()
-        description.append("<> Required parameters [] Optional parameters")
-        for command in cog.get_commands():
-            parameters = " ".join([
-                f"<{parameter.name}>" if parameter.required else f"[{parameter.name}]" for parameter
-                in command.params.values()
-            ])
-            description.append(f"{prefix}{command} {parameters}")
-
-        embed = interaction.message.embeds[0]
-        embed.description = "\n".join(description)
-
+        embed = get_cog_help_embed(cog, "p!")
         await interaction.message.edit(embed=embed, view=self.view)
         await interaction.response.defer()
 
 
-class CogSelectorView(ui.View):
-    def __init__(self, ctx: commands.Context, *, timeout=10) -> None:
+class HelpView(discord.ui.View):
+    def __init__(self, ctx: commands.Context, *, timeout=180) -> None:
         super().__init__(timeout=timeout)
-        self.message: discord.Message | None = None
         self.ctx = ctx
-        self.add_item(CogSelector(self.ctx.bot))
+        self.message: discord.Message | None = None
+
+        self.add_item(HelpSelector(self.ctx.bot))
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
         if self.ctx.author != interaction.user:
@@ -76,16 +79,16 @@ class HelpCommand(commands.HelpCommand):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
+        self.message = None
+
     async def send_bot_help(
             self,
-            mapping: Mapping[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]
+            mapping: Mapping[Optional[Cog], List[Command[Any, ..., Any]]],
+            /
     ) -> None:
-        prefix = self.context.bot.db.get_prefix(self.context.guild)
-        embed = discord.Embed(
-            description=
-            f"My prefix is `{prefix}`"
-            f"Select the cog below for detailed help",
-            color=EMBED_COLOR
-        )
-        cog_selector = CogSelectorView(self.context)
-        cog_selector.message = await self.context.send(embed=embed, view=cog_selector)
+        view = HelpView(self.context)
+        await self.context.send(view=view)
+
+    async def send_cog_help(self, cog: Cog, /) -> None:
+        embed = get_cog_help_embed(cog, "p!")
+        await self.get_destination().send(embed=embed)
