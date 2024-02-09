@@ -85,6 +85,7 @@ class Poop(commands.Cog):
         self.bot.db.rankup(ctx.author)
         await ctx.send()
 
+    @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.hybrid_command(
         name="leaderboard",
         aliases=["lb", "top"],
