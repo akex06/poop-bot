@@ -10,8 +10,8 @@ A useless bot for Discord
 ![poop leaderboard](images/leaderboard.png)
 ## Get some help
 ### General
-![help general](help_general.png)
+![help general](images/help_general.png)
 ### Cog
-![help cog](help_cog.png)
+![help cog](images/help_cog.png)
 ### Command
-![help command](help_command.png)
+![help command](images/help_command.png)
