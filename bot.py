@@ -33,6 +33,7 @@ class PoopBot(commands.Bot):
     async def on_ready(self) -> None:
         print(f"Bot ready: {self.user}")
 
+
     async def setup_hook(self) -> None:
         for cog in os.listdir("cogs"):
             if not cog.endswith(".py"):
